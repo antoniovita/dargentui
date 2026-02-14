@@ -16,7 +16,8 @@ const CreationPage = () => {
   const [formError, setFormError] = useState<string>("");
   const [fundName, setFundName] = useState<string>("");
   const [fundDescription, setFundDescription] = useState<string>("");
-  const [buffer, setBuffer] = useState(0);
+  const [buffer, setBuffer] = useState<number>(0);
+  const [feeRecipient, setFeeRecipient] = useState<Address | undefined>(undefined);
   
   const { address } = useAccount();
   const { createFund, fund, txHash, isPending, isConfirming } = useCreateFund();
@@ -57,6 +58,16 @@ const CreationPage = () => {
       ...prev,
       [implementation.toLowerCase()]: value,
     }));
+  }
+
+  function handleRemoveImplementation(implementation: Address) {
+    const key = implementation.toLowerCase();
+    setImplementations((prev) => prev.filter((item) => item.toLowerCase() !== key));
+    setWeightsByImplementation((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }
 
   async function onClick() {
@@ -156,17 +167,25 @@ const CreationPage = () => {
             weightsByImplementation={weightsByImplementation}
             strategyInfoByImplementation={strategyInfoByImplementation}
             onWeightChange={handleWeightChange}
+            onRemoveImplementation={handleRemoveImplementation}
           />
         </div>
 
 
-                  <button
+        <div className="w-full h-40 mt-8 bg-[#191919] border p-3 border-[#292929] rounded-xl flex-col flex">
+
+          <button
             onClick={onClick}
             disabled={isPending || isConfirming}
             className="rounded-xl border border-[#262626] bg-white px-8 py-3 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? "Creating..." : isConfirming ? "Confirming..." : "Create Fund"}
           </button>
+
+
+        </div>
+
+
       </div>
     </main>
   );
