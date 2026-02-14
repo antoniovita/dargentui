@@ -14,10 +14,10 @@ const Header = () => {
   ];
 
   return (
-    <header className=" bg-[#191919] sticky top-0 z-50">
+    <header className=" bg-[#191919] border-[#292929] border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+
           <Link 
             href="/" 
             className="flex items-center text-xl font-serif text-white hover:text-gray-300 transition-colors duration-200"
@@ -25,7 +25,6 @@ const Header = () => {
             D'argent
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8 lg:gap-10">
             {navLinks.map((link) => (
               <Link

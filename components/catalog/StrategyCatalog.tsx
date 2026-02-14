@@ -58,8 +58,8 @@ export function StrategyCatalog({
         return true;
       })
       .sort((a: any, b: any) => {
-        const as = Number(a?.riskScore ?? 0);
-        const bs = Number(b?.riskScore ?? 0);
+        const as = Number(a?.riskTier ?? 0);
+        const bs = Number(b?.riskTier ?? 0);
         if (as !== bs) return bs - as;
 
         const al = a?.isLiquid ? 0 : 1;
@@ -186,7 +186,7 @@ export function StrategyCatalog({
                     className={`cursor-pointer transition-colors ${isSelected ? "bg-[#161616]" : "hover:bg-[#161616]"}`}
                   >
                     <td className="py-5 px-8 text-white text-sm">{s?.metadata?.name || `Strategy #${idx + 1}`}</td>
-                    <td className="py-5 px-8 text-gray-300 text-sm">{s?.riskScore ?? "-"}</td>
+                    <td className="py-5 px-8 text-gray-300 text-sm">{s?.riskTier ?? "-"}</td>
                     <td className="py-5 px-8 text-gray-300 text-sm">
                       {s?.isLiquid === undefined ? "-" : s.isLiquid ? "Liquid" : "Illiquid"}
                     </td>

@@ -7,6 +7,7 @@ import { useAccount } from "wagmi";
 
 import { StrategyCatalog } from "@/components/catalog/StrategyCatalog";
 import { WeightPicker } from "@/components/catalog/WeightPicker";
+import { useStrategyList } from "@/hooks/strategy/useStrategyList";
 
 const CreationPage = () => {
   const [asset, setAsset] = useState<Address | undefined>(undefined);
@@ -15,9 +16,11 @@ const CreationPage = () => {
   const [formError, setFormError] = useState<string>("");
   const [fundName, setFundName] = useState<string>("");
   const [fundDescription, setFundDescription] = useState<string>("");
-
+  const [buffer, setBuffer] = useState(0);
+  
   const { address } = useAccount();
   const { createFund, fund, txHash, isPending, isConfirming } = useCreateFund();
+  const { implementations: strategyItems } = useStrategyList();
 
   useEffect(() => {
     setWeightsByImplementation((prev) => {
@@ -37,6 +40,18 @@ const CreationPage = () => {
 
   const totalWeightBps = useMemo(() => weightsBps.reduce((acc, w) => acc + w, 0), [weightsBps]);
 
+  const strategyInfoByImplementation = useMemo(() => {
+    const next: Record<string, { riskTier: number | null; liquidity: boolean | null }> = {};
+    for (const item of strategyItems ?? []) {
+      const key = item.implementation.toLowerCase();
+      next[key] = {
+        riskTier: Number.isFinite(item.riskTier) ? item.riskTier : null,
+        liquidity: typeof item.isLiquid === "boolean" ? item.isLiquid : null,
+      };
+    }
+    return next;
+  }, [strategyItems]);
+
   function handleWeightChange(implementation: Address, value: number) {
     setWeightsByImplementation((prev) => ({
       ...prev,
@@ -45,6 +60,8 @@ const CreationPage = () => {
   }
 
   async function onClick() {
+    const bufferBps = Math.round(Math.max(0, Math.min(100, buffer)) * 100);
+
     if (!address) {
       setFormError("Conecte sua carteira.");
       return;
@@ -71,7 +88,7 @@ const CreationPage = () => {
       fundType: 1,
       asset,
       fundMetadataURI: "ipfs://fund-meta",
-      bufferBps: 0,
+      bufferBps,
       mgmtFeeBps: 0,
       perfFeeBps: 0,
       managerFeeRecipient: address as Address,
@@ -134,12 +151,12 @@ const CreationPage = () => {
         <div className="mt-8 flex gap-8 flex-row">
           <WeightPicker
             implementations={implementations}
+            buffer={buffer}
+            setBuffer={setBuffer}
             weightsByImplementation={weightsByImplementation}
+            strategyInfoByImplementation={strategyInfoByImplementation}
             onWeightChange={handleWeightChange}
           />
-
-        <div className="bg-red-50 w-[30%] h-50"></div>
-
         </div>
 
 
