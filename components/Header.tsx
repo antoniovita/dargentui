@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { ConnectWalletButton } from "./ConnectWalletButton";
+import Image from "next/image";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,7 +23,7 @@ const Header = () => {
             href="/" 
             className="flex items-center text-xl font-serif text-white hover:text-gray-300 transition-colors duration-200"
           >
-            D'argent
+            <Image src="/logo.png" width={120} height={50} alt="Dargent" />
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 lg:gap-10">

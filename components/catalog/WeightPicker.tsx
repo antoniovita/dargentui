@@ -265,7 +265,7 @@ export function WeightPicker({
                             step="0.01"
                             value={weightPercent}
                             onChange={(e) => setWeightPercent(impl, Number(e.target.value))}
-                            className="w-[40%] rounded-lg border-[#262626] bg-[#191919] text-sm text-zinc-300"
+                            className="w-[40%] rounded-lg border border-[#262626] focus:shadow-none focus:border-none bg-[#191919] text-sm font-bold text-zinc-300 focus:outline-none focus:ring-0 focus:ring-transparent focus-visible:outline-none focus-visible:ring-0"
                           />
                         </div>
                       </td>

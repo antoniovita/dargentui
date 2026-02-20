@@ -1,13 +1,15 @@
 "use client";
 
 import { useCreateFund } from "@/hooks/fund/useCreateFund";
-import { useEffect, useMemo, useState } from "react";
-import type { Address } from "viem";
+import { useMemo, useState } from "react";
+import { isAddress, type Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { StrategyCatalog } from "@/components/catalog/StrategyCatalog";
+import { FundReview } from "@/components/catalog/FundReview";
 import { WeightPicker } from "@/components/catalog/WeightPicker";
 import { useStrategyList } from "@/hooks/strategy/useStrategyList";
+import FeeConfig from "@/components/catalog/FeeConfig";
 
 const CreationPage = () => {
   const [asset, setAsset] = useState<Address | undefined>(undefined);
@@ -17,22 +19,14 @@ const CreationPage = () => {
   const [fundName, setFundName] = useState<string>("");
   const [fundDescription, setFundDescription] = useState<string>("");
   const [buffer, setBuffer] = useState<number>(0);
-  const [feeRecipient, setFeeRecipient] = useState<Address | undefined>(undefined);
+  const [managementFeePercent, setManagementFeePercent] = useState<number>(0);
+  const [performanceFeePercent, setPerformanceFeePercent] = useState<number>(0);
+  const [isFeeRecipientSelf, setIsFeeRecipientSelf] = useState<boolean>(true);
+  const [feeRecipientInput, setFeeRecipientInput] = useState<string>("");
   
   const { address } = useAccount();
   const { createFund, fund, txHash, isPending, isConfirming } = useCreateFund();
   const { implementations: strategyItems } = useStrategyList();
-
-  useEffect(() => {
-    setWeightsByImplementation((prev) => {
-      const next: Record<string, number> = {};
-      for (const impl of implementations) {
-        const key = impl.toLowerCase();
-        next[key] = prev[key] ?? 0;
-      }
-      return next;
-    });
-  }, [implementations]);
 
   const weightsBps = useMemo(
     () => implementations.map((impl) => Number(weightsByImplementation[impl.toLowerCase()] ?? 0)),
@@ -53,6 +47,11 @@ const CreationPage = () => {
     return next;
   }, [strategyItems]);
 
+  function clampPercent(value: number) {
+    if (!Number.isFinite(value)) return 0;
+    return Math.max(0, Math.min(100, value));
+  }
+
   function handleWeightChange(implementation: Address, value: number) {
     setWeightsByImplementation((prev) => ({
       ...prev,
@@ -72,6 +71,8 @@ const CreationPage = () => {
 
   async function onClick() {
     const bufferBps = Math.round(Math.max(0, Math.min(100, buffer)) * 100);
+    const mgmtFeeBps = Math.round(clampPercent(managementFeePercent) * 100);
+    const perfFeeBps = Math.round(clampPercent(performanceFeePercent) * 100);
 
     if (!address) {
       setFormError("Conecte sua carteira.");
@@ -93,6 +94,14 @@ const CreationPage = () => {
       setFormError("A soma dos pesos deve ser 100%.");
       return;
     }
+    if (!isFeeRecipientSelf && !isAddress(feeRecipientInput)) {
+      setFormError("Insira um endereço válido para fee recipient.");
+      return;
+    }
+
+    const managerFeeRecipient = isFeeRecipientSelf
+      ? (address as Address)
+      : (feeRecipientInput as Address);
 
     setFormError("");
     await createFund({
@@ -100,9 +109,9 @@ const CreationPage = () => {
       asset,
       fundMetadataURI: "ipfs://fund-meta",
       bufferBps,
-      mgmtFeeBps: 0,
-      perfFeeBps: 0,
-      managerFeeRecipient: address as Address,
+      mgmtFeeBps,
+      perfFeeBps,
+      managerFeeRecipient,
       strategyImplementations: implementations,
       weightsBps,
     });
@@ -171,21 +180,40 @@ const CreationPage = () => {
           />
         </div>
 
-
-        <div className="w-full h-40 mt-8 bg-[#191919] border p-3 border-[#292929] rounded-xl flex-col flex">
-
-          <button
-            onClick={onClick}
-            disabled={isPending || isConfirming}
-            className="rounded-xl border border-[#262626] bg-white px-8 py-3 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isPending ? "Creating..." : isConfirming ? "Confirming..." : "Create Fund"}
-          </button>
-
-
-        </div>
+        <div className="flex-row mt-8 flex gap-8">
+          <FeeConfig
+            managementFeePercent={managementFeePercent}
+            performanceFeePercent={performanceFeePercent}
+            isFeeRecipientSelf={isFeeRecipientSelf}
+            feeRecipientInput={feeRecipientInput}
+            onManagementFeeChange={setManagementFeePercent}
+            onPerformanceFeeChange={setPerformanceFeePercent}
+            onFeeRecipientSelfChange={setIsFeeRecipientSelf}
+            onFeeRecipientInputChange={setFeeRecipientInput}
+          />
 
 
+          <FundReview
+            fundName={fundName}
+            asset={asset}
+            bufferPercent={buffer}
+            managementFeePercent={managementFeePercent}
+            performanceFeePercent={performanceFeePercent}
+            feeRecipient={
+              isFeeRecipientSelf
+                ? (address as Address | undefined)
+                : (isAddress(feeRecipientInput) ? (feeRecipientInput as Address) : undefined)
+            }
+            isPending={isPending}
+            isConfirming={isConfirming}
+            onCreate={onClick}
+          />
+      </div>
+
+
+
+
+          
       </div>
     </main>
   );
