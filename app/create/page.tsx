@@ -10,12 +10,21 @@ import { FundReview } from "@/components/catalog/FundReview";
 import { WeightPicker } from "@/components/catalog/WeightPicker";
 import { useStrategyList } from "@/hooks/strategy/useStrategyList";
 import FeeConfig from "@/components/catalog/FeeConfig";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const CreationPage = () => {
   const [asset, setAsset] = useState<Address | undefined>(undefined);
   const [implementations, setImplementations] = useState<Address[]>([]);
   const [weightsByImplementation, setWeightsByImplementation] = useState<Record<string, number>>({});
-  const [formError, setFormError] = useState<string>("");
+  const [errorDialogMessage, setErrorDialogMessage] = useState<string>("");
   const [fundName, setFundName] = useState<string>("");
   const [fundDescription, setFundDescription] = useState<string>("");
   const [buffer, setBuffer] = useState<number>(0);
@@ -34,6 +43,15 @@ const CreationPage = () => {
   );
 
   const totalWeightBps = useMemo(() => weightsBps.reduce((acc, w) => acc + w, 0), [weightsBps]);
+  const isCreateValid = useMemo(() => {
+    if (!address) return false;
+    if (!fundName.trim()) return false;
+    if (!asset) return false;
+    if (implementations.length === 0) return false;
+    if (totalWeightBps !== 10000) return false;
+    if (!isFeeRecipientSelf && !isAddress(feeRecipientInput)) return false;
+    return true;
+  }, [address, fundName, asset, implementations.length, totalWeightBps, isFeeRecipientSelf, feeRecipientInput]);
 
   const strategyInfoByImplementation = useMemo(() => {
     const next: Record<string, { riskTier: number | null; liquidity: boolean | null }> = {};
@@ -46,6 +64,10 @@ const CreationPage = () => {
     }
     return next;
   }, [strategyItems]);
+
+  function openErrorDialog(message: string) {
+    setErrorDialogMessage(message);
+  }
 
   function clampPercent(value: number) {
     if (!Number.isFinite(value)) return 0;
@@ -75,27 +97,27 @@ const CreationPage = () => {
     const perfFeeBps = Math.round(clampPercent(performanceFeePercent) * 100);
 
     if (!address) {
-      setFormError("Conecte sua carteira.");
+      openErrorDialog("Connect your wallet.");
       return;
     }
     if (!fundName.trim()) {
-      setFormError("Insira um nome para o fundo.");
+      openErrorDialog("Enter a fund name.");
       return;
     }
     if (!asset) {
-      setFormError("Selecione um asset.");
+      openErrorDialog("Select an asset.");
       return;
     }
     if (implementations.length === 0) {
-      setFormError("Selecione pelo menos uma strategy.");
+      openErrorDialog("Select at least one strategy.");
       return;
     }
     if (totalWeightBps !== 10000) {
-      setFormError("A soma dos pesos deve ser 100%.");
+      openErrorDialog("Total weights must equal 100%.");
       return;
     }
     if (!isFeeRecipientSelf && !isAddress(feeRecipientInput)) {
-      setFormError("Insira um endereço válido para fee recipient.");
+      openErrorDialog("Enter a valid fee recipient address.");
       return;
     }
 
@@ -103,7 +125,6 @@ const CreationPage = () => {
       ? (address as Address)
       : (feeRecipientInput as Address);
 
-    setFormError("");
     await createFund({
       fundType: 1,
       asset,
@@ -120,11 +141,19 @@ const CreationPage = () => {
   return (
     <main className="min-h-screen bg-[#202020] text-white">
       <div className="mx-auto max-w-7xl px-6 py-12">
-        {formError && (
-          <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
-            {formError}
-          </div>
-        )}
+        <AlertDialog open={Boolean(errorDialogMessage)} onOpenChange={(open) => !open && setErrorDialogMessage("")}>
+          <AlertDialogContent className="border-[#2a2a2a] bg-[#191919] text-zinc-100">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Unable to create fund</AlertDialogTitle>
+              <AlertDialogDescription className="text-zinc-400">{errorDialogMessage}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogAction className="!bg-white !text-black hover:!bg-white hover:!text-black">
+                Got it
+            </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {fund && (
           <div className="mb-6 space-y-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-400">
@@ -199,6 +228,7 @@ const CreationPage = () => {
             bufferPercent={buffer}
             managementFeePercent={managementFeePercent}
             performanceFeePercent={performanceFeePercent}
+            canCreate={isCreateValid}
             feeRecipient={
               isFeeRecipientSelf
                 ? (address as Address | undefined)

@@ -7,6 +7,7 @@ type Props = {
   managementFeePercent: number;
   performanceFeePercent: number;
   feeRecipient?: Address;
+  canCreate: boolean;
   isPending: boolean;
   isConfirming: boolean;
   onCreate: () => void;
@@ -19,6 +20,7 @@ export function FundReview({
   managementFeePercent,
   performanceFeePercent,
   feeRecipient,
+  canCreate,
   isPending,
   isConfirming,
   onCreate,
@@ -51,7 +53,7 @@ export function FundReview({
 
       <button
         onClick={onCreate}
-        disabled={isPending || isConfirming}
+        disabled={!canCreate || isPending || isConfirming}
         className="m-4 w-[calc(100%-2rem)] rounded-xl border border-[#262626] bg-white px-8 py-3 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? "Creating..." : isConfirming ? "Confirming..." : "Create Fund"}

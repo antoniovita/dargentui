@@ -18,7 +18,7 @@ const Loading = () => {
     <main className="grid min-h-screen place-items-center bg-[#202020] px-6 text-white">
       <div className="w-full max-w-md space-y-3">
         <p className="text-center text-sm text-zinc-300">Carregando...</p>
-        <Progress value={value} className="h-2 bg-zinc-700 [&>*]:bg-white" />
+        <Progress value={value} className="h-2 bg-zinc-700" />
       </div>
     </main>
   );
