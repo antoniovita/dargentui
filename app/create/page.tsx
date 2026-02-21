@@ -9,7 +9,10 @@ import { StrategyCatalog } from "@/components/catalog/StrategyCatalog";
 import { FundReview } from "@/components/catalog/FundReview";
 import { WeightPicker } from "@/components/catalog/WeightPicker";
 import { useStrategyList } from "@/hooks/strategy/useStrategyList";
-import FeeConfig from "@/components/catalog/FeeConfig";
+import { FeeConfig } from "@/components/catalog/FeeConfig";
+import { FormState } from "@/hooks/form/useForm";
+import { Form } from "@/components/catalog/Form";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,21 +20,22 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
+
 
 const CreationPage = () => {
   const [asset, setAsset] = useState<Address | undefined>(undefined);
   const [implementations, setImplementations] = useState<Address[]>([]);
   const [weightsByImplementation, setWeightsByImplementation] = useState<Record<string, number>>({});
   const [errorDialogMessage, setErrorDialogMessage] = useState<string>("");
-  const [fundName, setFundName] = useState<string>("");
-  const [fundDescription, setFundDescription] = useState<string>("");
   const [buffer, setBuffer] = useState<number>(0);
   const [managementFeePercent, setManagementFeePercent] = useState<number>(0);
   const [performanceFeePercent, setPerformanceFeePercent] = useState<number>(0);
   const [isFeeRecipientSelf, setIsFeeRecipientSelf] = useState<boolean>(true);
   const [feeRecipientInput, setFeeRecipientInput] = useState<string>("");
+  const [field, setField] = useState<FormState>({ name: "", description: "" });
+
   
   const { address } = useAccount();
   const { createFund, fund, txHash, isPending, isConfirming } = useCreateFund();
@@ -45,13 +49,14 @@ const CreationPage = () => {
   const totalWeightBps = useMemo(() => weightsBps.reduce((acc, w) => acc + w, 0), [weightsBps]);
   const isCreateValid = useMemo(() => {
     if (!address) return false;
-    if (!fundName.trim()) return false;
+    if (!field.description.trim()) return false;
+    if (!field.name.trim()) return false;
     if (!asset) return false;
     if (implementations.length === 0) return false;
     if (totalWeightBps !== 10000) return false;
     if (!isFeeRecipientSelf && !isAddress(feeRecipientInput)) return false;
     return true;
-  }, [address, fundName, asset, implementations.length, totalWeightBps, isFeeRecipientSelf, feeRecipientInput]);
+  }, [address, field, asset, implementations.length, totalWeightBps, isFeeRecipientSelf, feeRecipientInput]);
 
   const strategyInfoByImplementation = useMemo(() => {
     const next: Record<string, { riskTier: number | null; liquidity: boolean | null }> = {};
@@ -100,8 +105,12 @@ const CreationPage = () => {
       openErrorDialog("Connect your wallet.");
       return;
     }
-    if (!fundName.trim()) {
+    if (!field.name.trim()) {
       openErrorDialog("Enter a fund name.");
+      return;
+    }
+    if (!field.description.trim()) {
+      openErrorDialog("Enter a fund description.");
       return;
     }
     if (!asset) {
@@ -148,7 +157,7 @@ const CreationPage = () => {
               <AlertDialogDescription className="text-zinc-400">{errorDialogMessage}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-            <AlertDialogAction className="!bg-white !text-black hover:!bg-white hover:!text-black">
+            <AlertDialogAction className="bg-white! text-black! hover:bg-white! hover:text-black!">
                 Got it
             </AlertDialogAction>
             </AlertDialogFooter>
@@ -164,29 +173,8 @@ const CreationPage = () => {
         )}
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl bg-[#191919] border border-[#292929] p-6 space-y-5">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">Fund Name</label>
-              <input
-                type="text"
-                value={fundName}
-                onChange={(e) => setFundName(e.target.value)}
-                placeholder="e.g., Aave Lending Turbo"
-                className="w-full rounded-xl border border-[#262626] bg-[#191919] px-4 py-2.5 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-[#3a3a3a] transition-colors"
-              />
-            </div>
+          <Form field={field} setField={setField} />
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-zinc-300">Description</label>
-              <textarea
-                value={fundDescription}
-                onChange={(e) => setFundDescription(e.target.value)}
-                placeholder="Describe your fund strategy and goals..."
-                rows={4}
-                className="w-full resize-none rounded-xl border border-[#262626] bg-[#191919] px-4 py-2.5 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-[#3a3a3a] transition-colors"
-              />
-            </div>
-          </div>
 
           <StrategyCatalog
             asset={asset}
@@ -223,7 +211,7 @@ const CreationPage = () => {
 
 
           <FundReview
-            fundName={fundName}
+            fundName={field.name}
             asset={asset}
             bufferPercent={buffer}
             managementFeePercent={managementFeePercent}

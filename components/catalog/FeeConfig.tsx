@@ -16,7 +16,7 @@ function clampPercent(value: number) {
   return Math.max(0, Math.min(100, value));
 }
 
-const FeeConfig = ({
+export const FeeConfig = ({
   managementFeePercent,
   performanceFeePercent,
   isFeeRecipientSelf,
@@ -112,5 +112,3 @@ const FeeConfig = ({
     </div>
   );
 };
-
-export default FeeConfig;
