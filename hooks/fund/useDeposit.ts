@@ -3,8 +3,8 @@ import { usePublicClient, useWriteContract, useWaitForTransactionReceipt } from 
 import type { Address, Hash } from "viem";
 import { decodeEventLog } from "viem";
 
-import ProductFactoryArtifact from "../../contracts/ProductFactory.json";
-import ProductRegistryArtifact from "../../contracts/ProductRegistry.json";
+import ProductFactoryArtifact from "../../contracts/IProductFactory.json";
+import ProductRegistryArtifact from "../../contracts/IProductRegistry.json";
 import { ADDR } from "../../lib/addresses";
 
 

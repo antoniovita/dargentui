@@ -5,7 +5,7 @@ import { usePublicClient } from "wagmi";
 import type { Address, Hash } from "viem";
 import { decodeEventLog } from "viem";
 
-import StrategyRegistryArtifact from "../../contracts/StrategyRegistry.json";
+import StrategyRegistryArtifact from "../../contracts/IStrategyRegistry.json";
 import { ADDR } from "../../lib/addresses";
 
 export enum StrategyStatus {

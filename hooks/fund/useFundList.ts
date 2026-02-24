@@ -4,7 +4,7 @@ import { usePublicClient } from "wagmi";
 import type { Address, Hash } from "viem";
 import { decodeEventLog } from "viem";
 
-import ProductRegistryArtifact from "../../contracts/ProductRegistry.json";
+import ProductRegistryArtifact from "../../contracts/IProductRegistry.json";
 import { ADDR } from "../../lib/addresses";
 
 export type FundCatalogItem = {
@@ -13,8 +13,10 @@ export type FundCatalogItem = {
   asset: Address;
   productOwner: Address;
   fundType: number;
+  riskTier: number;
+  riskScore: number;
+  sharePrice: number;
   metadataURI: string;
-
   blockNumber: bigint;
   transactionHash: Hash;
   logIndex: number;
@@ -63,6 +65,9 @@ export function useFundList() {
                 productOwner: Address;
                 fundType: bigint;
                 metadataURI: string;
+                sharePrice: number;
+                riskTier: number;
+                riskScore: number;
               };
             };
 
@@ -75,6 +80,10 @@ export function useFundList() {
               productOwner: decoded.args.productOwner,
               fundType: Number(decoded.args.fundType),
               metadataURI: decoded.args.metadataURI,
+              sharePrice: Number(decoded.args.sharePrice),
+              riskTier: Number(decoded.args.riskTier),
+              riskScore: Number(decoded.args.riskScore),
+              
               blockNumber: l.blockNumber ?? BigInt(0),
               transactionHash: l.transactionHash as Hash,
               logIndex: Number(l.logIndex ?? 0),

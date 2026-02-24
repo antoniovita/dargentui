@@ -80,11 +80,6 @@ export const FundCatalog = () => {
           </div>
         </div>
 
-        {isLoading && (
-          <div className="text-center text-gray-400 py-12">
-            Loading funds...
-          </div>
-        )}
 
         {error && (
           <div className="text-center text-red-400 py-12">
@@ -127,7 +122,7 @@ export const FundCatalog = () => {
                       {fund.manager}
                     </td>
                     <td className="py-6 px-8 text-white text-sm">
-                      {fund.apy || 9}%
+                      ainda nao sei pegar essa info
                     </td>
                   </tr>
                 ))}
